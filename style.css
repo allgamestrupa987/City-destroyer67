@@ -1,0 +1,394 @@
+/* =================================
+   RESET
+================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #101820;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    user-select: none;
+}
+
+
+/* =================================
+   CANVAS
+================================= */
+
+#gameCanvas {
+
+    position: fixed;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    background: #79bce8;
+
+    image-rendering: auto;
+}
+
+
+/* =================================
+   MENU
+================================= */
+
+#menu {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 20;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background:
+        linear-gradient(
+            rgba(8, 13, 20, .70),
+            rgba(8, 13, 20, .92)
+        );
+}
+
+
+.menu-box {
+
+    width: min(90%, 520px);
+
+    padding: 45px 30px;
+
+    text-align: center;
+
+    background:
+        rgba(15, 22, 30, .96);
+
+    border:
+        1px solid #43505c;
+
+    box-shadow:
+        0 15px 50px
+        rgba(0, 0, 0, .5);
+}
+
+
+.menu-box h1 {
+
+    color: #ff4d4d;
+
+    font-size:
+        clamp(36px, 7vw, 62px);
+
+    line-height: 1;
+
+    letter-spacing: 3px;
+
+    text-shadow:
+        3px 3px 0 #000;
+}
+
+
+.subtitle {
+
+    margin-top: 15px;
+
+    color: #9ca8b3;
+
+    font-size: 16px;
+}
+
+
+/* =================================
+   BOTÃO
+================================= */
+
+button {
+
+    font-family: inherit;
+
+    cursor: pointer;
+
+    transition:
+        background-color .15s,
+        transform .1s;
+}
+
+
+#startButton {
+
+    margin-top: 30px;
+
+    width: 220px;
+
+    padding: 15px;
+
+    color: white;
+
+    background: #d83c3c;
+
+    border: 0;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+
+#startButton:hover {
+
+    background: #ef4d4d;
+
+    transform: translateY(-2px);
+}
+
+
+#startButton:active {
+
+    transform:
+        translateY(1px);
+}
+
+
+/* =================================
+   CONTROLES
+================================= */
+
+.controls {
+
+    margin-top: 30px;
+
+    color: #8996a2;
+
+    font-size: 13px;
+
+    line-height: 1.8;
+}
+
+
+.controls b {
+
+    color: #e5e9ed;
+}
+
+
+/* =================================
+   HUD
+================================= */
+
+#hud {
+
+    position: fixed;
+
+    z-index: 10;
+
+    top: 12px;
+
+    left: 12px;
+
+    right: 12px;
+
+    display: none;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+}
+
+
+.hud-item {
+
+    min-width: 125px;
+
+    padding:
+        9px 12px;
+
+    background:
+        rgba(10, 15, 20, .88);
+
+    border:
+        1px solid #394651;
+
+    color: #d7dfe5;
+
+    font-size: 13px;
+}
+
+
+.hud-item span {
+
+    color: #8996a2;
+}
+
+
+.hud-item strong {
+
+    margin-left: 5px;
+
+    color: white;
+}
+
+
+/* =================================
+   DICAS
+================================= */
+
+#tip {
+
+    position: fixed;
+
+    z-index: 10;
+
+    display: none;
+
+    bottom: 12px;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    padding:
+        7px 12px;
+
+    color: #bbc5cc;
+
+    background:
+        rgba(0, 0, 0, .65);
+
+    font-size: 11px;
+
+    white-space: nowrap;
+}
+
+
+/* =================================
+   GAME OVER
+================================= */
+
+#gameOver {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 30;
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background:
+        rgba(0, 0, 0, .82);
+}
+
+
+.gameover-box {
+
+    width: min(90%, 430px);
+
+    padding: 40px;
+
+    text-align: center;
+
+    background: #151d25;
+
+    border:
+        1px solid #4a5660;
+}
+
+
+.gameover-box h2 {
+
+    color: #ff4b4b;
+
+    font-size: 38px;
+
+    margin-bottom: 20px;
+}
+
+
+.gameover-box p {
+
+    color: #b5c0c8;
+
+    margin-bottom: 25px;
+}
+
+
+.gameover-box strong {
+
+    color: white;
+}
+
+
+#restartButton {
+
+    padding:
+        13px 28px;
+
+    color: white;
+
+    background: #c83c3c;
+
+    border: 0;
+
+    font-weight: bold;
+}
+
+
+#restartButton:hover {
+
+    background: #e44b4b;
+}
+
+
+/* =================================
+   MOBILE
+================================= */
+
+@media (max-width: 600px) {
+
+    .menu-box {
+
+        padding:
+            35px 20px;
+    }
+
+    .hud-item {
+
+        min-width: 105px;
+
+        padding:
+            7px 9px;
+
+        font-size: 11px;
+    }
+
+    #tip {
+
+        font-size: 9px;
+    }
+}

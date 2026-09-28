@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>City Destroyer</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =========================
+         MENU
+    ========================== -->
+
+    <main id="menu">
+
+        <div class="menu-box">
+
+            <h1>CITY DESTROYER</h1>
+
+            <p class="subtitle">
+                Protótipo 2D
+            </p>
+
+            <button id="startButton">
+                JOGAR
+            </button>
+
+            <div class="controls">
+
+                <p><b>A / D</b> ou <b>← / →</b> — Mover</p>
+
+                <p><b>ESPAÇO</b> — Ataque</p>
+
+                <p><b>B</b> — Lançar bomba</p>
+
+                <p><b>R</b> — Chamar bombardeiro</p>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================
+         JOGO
+    ========================== -->
+
+    <canvas id="gameCanvas"></canvas>
+
+
+    <!-- =========================
+         HUD
+    ========================== -->
+
+    <section id="hud">
+
+        <div class="hud-item">
+            ❤️ <span>Vida</span>
+            <strong id="health">100</strong>
+        </div>
+
+        <div class="hud-item">
+            💥 <span>Destruição</span>
+            <strong id="score">0</strong>
+        </div>
+
+        <div class="hud-item">
+            🏢 <span>Prédios</span>
+            <strong id="buildings">0</strong>
+        </div>
+
+        <div class="hud-item">
+            ✈️ <span>Bombardeiros</span>
+            <strong id="bombers">3</strong>
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         INFORMAÇÕES
+    ========================== -->
+
+    <div id="tip">
+        WASD / SETAS • ESPAÇO • B • R
+    </div>
+
+
+    <!-- =========================
+         GAME OVER
+    ========================== -->
+
+    <section id="gameOver">
+
+        <div class="gameover-box">
+
+            <h2>FIM DE JOGO</h2>
+
+            <p>
+                Pontuação:
+                <strong id="finalScore">0</strong>
+            </p>
+
+            <button id="restartButton">
+                JOGAR NOVAMENTE
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
