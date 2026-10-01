@@ -95,16 +95,12 @@ const player = {
 
 function resizeCanvas() {
 
-    W =
-        window.innerWidth;
+    W = window.innerWidth;
 
-    H =
-        window.innerHeight;
-
+    H = window.innerHeight;
 
     canvas.width = W;
     canvas.height = H;
-
 
     updatePlayerPosition();
 }
@@ -136,9 +132,7 @@ document
     .addEventListener(
         "click",
         () => {
-
             location.reload();
-
         }
     );
 
@@ -153,37 +147,20 @@ window.addEventListener(
 
         keys[event.code] = true;
 
-
         if (!running)
             return;
 
-
-        if (
-            event.code === "Space"
-        ) {
-
+        if (event.code === "Space") {
             event.preventDefault();
-
             attack();
-
         }
 
-
-        if (
-            event.code === "KeyB"
-        ) {
-
+        if (event.code === "KeyB") {
             dropBomb();
-
         }
 
-
-        if (
-            event.code === "KeyR"
-        ) {
-
+        if (event.code === "KeyR") {
             callBomber();
-
         }
 
     }
@@ -193,9 +170,7 @@ window.addEventListener(
 window.addEventListener(
     "keyup",
     event => {
-
         keys[event.code] = false;
-
     }
 );
 
@@ -210,16 +185,13 @@ function startGame() {
         .getElementById("menu")
         .style.display = "none";
 
-
     document
         .getElementById("hud")
         .style.display = "flex";
 
-
     document
         .getElementById("tip")
         .style.display = "block";
-
 
     createBuildings();
 
@@ -229,8 +201,7 @@ function startGame() {
 
     running = true;
 
-    lastTime =
-        performance.now();
+    lastTime = performance.now();
 
     requestAnimationFrame(loop);
 }
@@ -244,29 +215,15 @@ function createBuildings() {
 
     buildings.length = 0;
 
-
     let x = 50;
 
+    for (let i = 0; i < BUILDING_COUNT; i++) {
 
-    for (
-        let i = 0;
-        i < BUILDING_COUNT;
-        i++
-    ) {
+        const width = 55 + Math.random() * 70;
 
-        const width =
-            55 +
-            Math.random() * 70;
+        const height = 100 + Math.random() * 220;
 
-
-        const height =
-            100 +
-            Math.random() * 220;
-
-
-        const house =
-            Math.random() < 0.25;
-
+        const house = Math.random() < 0.25;
 
         buildings.push({
 
@@ -284,18 +241,11 @@ function createBuildings() {
 
             house: house,
 
-            color:
-                house
-                    ? "#bd8050"
-                    : randomBuildingColor()
+            color: house ? "#bd8050" : randomBuildingColor()
 
         });
 
-
-        x +=
-            width +
-            18 +
-            Math.random() * 35;
+        x += width + 18 + Math.random() * 35;
     }
 }
 
@@ -307,21 +257,15 @@ function createBuildings() {
 function randomBuildingColor() {
 
     const colors = [
-
         "#4d5964",
         "#596570",
         "#626c76",
         "#47515b",
         "#707982"
-
     ];
 
-
     return colors[
-        Math.floor(
-            Math.random() *
-            colors.length
-        )
+        Math.floor(Math.random() * colors.length)
     ];
 }
 
@@ -334,64 +278,40 @@ function createMonsters() {
 
     monsters.length = 0;
 
-
     monsters.push({
-
         x: 850,
-
         width: 70,
-
         height: 75,
-
         speed: 45,
-
-        health: 100
-
+        health: 100,
+        maxHealth: 100
     });
 
-
     monsters.push({
-
         x: 1800,
-
         width: 95,
-
         height: 100,
-
         speed: 35,
-
-        health: 150
-
+        health: 150,
+        maxHealth: 150
     });
 
-
     monsters.push({
-
         x: 3000,
-
         width: 120,
-
         height: 125,
-
         speed: 25,
-
-        health: 250
-
+        health: 250,
+        maxHealth: 250
     });
 
-
     monsters.push({
-
         x: 4200,
-
         width: 75,
-
         height: 80,
-
         speed: 55,
-
-        health: 100
-
+        health: 100,
+        maxHealth: 100
     });
 }
 
@@ -416,13 +336,8 @@ function update(dt) {
 
     updateHUD();
 
-
-    if (
-        player.health <= 0
-    ) {
-
+    if (player.health <= 0) {
         gameOver();
-
     }
 }
 
@@ -435,58 +350,27 @@ function updatePlayer(dt) {
 
     let direction = 0;
 
-
-    if (
-        keys["KeyA"] ||
-        keys["ArrowLeft"]
-    ) {
-
+    if (keys["KeyA"] || keys["ArrowLeft"]) {
         direction -= 1;
-
     }
 
-
-    if (
-        keys["KeyD"] ||
-        keys["ArrowRight"]
-    ) {
-
+    if (keys["KeyD"] || keys["ArrowRight"]) {
         direction += 1;
-
     }
 
+    player.x += direction * player.speed * dt;
 
-    player.x +=
-        direction *
-        player.speed *
-        dt;
+    player.x = Math.max(
+        20,
+        Math.min(WORLD_WIDTH - 20, player.x)
+    );
 
-
-    player.x =
-        Math.max(
-            20,
-            Math.min(
-                WORLD_WIDTH - 20,
-                player.x
-            )
-        );
-
-
-    if (
-        player.attackCooldown > 0
-    ) {
-
+    if (player.attackCooldown > 0) {
         player.attackCooldown -= dt;
-
     }
 
-
-    if (
-        player.bombCooldown > 0
-    ) {
-
+    if (player.bombCooldown > 0) {
         player.bombCooldown -= dt;
-
     }
 }
 
@@ -497,19 +381,12 @@ function updatePlayer(dt) {
 
 function updateCamera() {
 
-    cameraX =
-        player.x -
-        W * 0.35;
+    cameraX = player.x - W * 0.35;
 
-
-    cameraX =
-        Math.max(
-            0,
-            Math.min(
-                WORLD_WIDTH - W,
-                cameraX
-            )
-        );
+    cameraX = Math.max(
+        0,
+        Math.min(WORLD_WIDTH - W, cameraX)
+    );
 }
 
 
@@ -519,86 +396,39 @@ function updateCamera() {
 
 function attack() {
 
-    if (
-        player.attackCooldown > 0
-    )
+    if (player.attackCooldown > 0)
         return;
 
-
-    player.attackCooldown =
-        0.3;
-
+    player.attackCooldown = 0.3;
 
     const attackRange = 110;
 
+    /* Prédios */
+    for (const building of buildings) {
 
-    /*
-       Prédios
-    */
-
-    for (
-        const building of buildings
-    ) {
-
-        if (
-            building.destroyed
-        )
+        if (building.destroyed)
             continue;
 
+        const distance = Math.abs(
+            (building.x + building.width / 2) - player.x
+        );
 
-        const distance =
-            Math.abs(
-                (
-                    building.x +
-                    building.width / 2
-                ) -
-                player.x
-            );
+        if (distance < attackRange) {
 
+            building.health -= 35;
 
-        if (
-            distance <
-            attackRange
-        ) {
-
-            building.health -=
-                35;
-
-
-            if (
-                building.health <= 0
-            ) {
-
-                destroyBuilding(
-                    building
-                );
-
+            if (building.health <= 0) {
+                destroyBuilding(building);
             }
-
         }
     }
 
+    /* Monstros */
+    for (const monster of monsters) {
 
-    /*
-       Monstros
-    */
-
-    for (
-        const monster of monsters
-    ) {
-
-        if (
-            Math.abs(
-                monster.x -
-                player.x
-            ) < 100
-        ) {
-
-            monster.health -=
-                40;
-
+        if (Math.abs(monster.x - player.x) < 100) {
+            monster.health -= 40;
         }
-
     }
 }
 
@@ -609,24 +439,15 @@ function attack() {
 
 function dropBomb() {
 
-    if (
-        player.bombCooldown > 0
-    )
+    if (player.bombCooldown > 0)
         return;
 
-
-    player.bombCooldown =
-        1;
-
+    player.bombCooldown = 1;
 
     bombs.push({
-
         x: player.x,
-
         y: 150,
-
         speed: 400
-
     });
 }
 
@@ -637,26 +458,16 @@ function dropBomb() {
 
 function callBomber() {
 
-    if (
-        bomberCount <= 0
-    )
+    if (bomberCount <= 0)
         return;
-
 
     bomberCount--;
 
-
     bombers.push({
-
-        x:
-            player.x - 900,
-
+        x: player.x - 900,
         y: 100,
-
         speed: 600,
-
         dropped: false
-
     });
 }
 
@@ -667,25 +478,13 @@ function callBomber() {
 
 function updateBombs(dt) {
 
-    for (
-        let i = bombs.length - 1;
-        i >= 0;
-        i--
-    ) {
+    for (let i = bombs.length - 1; i >= 0; i--) {
 
-        const bomb =
-            bombs[i];
+        const bomb = bombs[i];
 
+        bomb.y += bomb.speed * dt;
 
-        bomb.y +=
-            bomb.speed *
-            dt;
-
-
-        if (
-            bomb.y >=
-            H - GROUND_HEIGHT
-        ) {
+        if (bomb.y >= H - GROUND_HEIGHT) {
 
             createExplosion(
                 bomb.x,
@@ -693,14 +492,8 @@ function updateBombs(dt) {
                 115
             );
 
-
-            bombs.splice(
-                i,
-                1
-            );
-
+            bombs.splice(i, 1);
         }
-
     }
 }
 
@@ -711,56 +504,26 @@ function updateBombs(dt) {
 
 function updateBombers(dt) {
 
-    for (
-        let i = bombers.length - 1;
-        i >= 0;
-        i--
-    ) {
+    for (let i = bombers.length - 1; i >= 0; i--) {
 
-        const bomber =
-            bombers[i];
+        const bomber = bombers[i];
 
+        bomber.x += bomber.speed * dt;
 
-        bomber.x +=
-            bomber.speed *
-            dt;
-
-
-        if (
-            !bomber.dropped &&
-            bomber.x >=
-            player.x
-        ) {
+        if (!bomber.dropped && bomber.x >= player.x) {
 
             bombs.push({
-
                 x: bomber.x,
-
                 y: bomber.y + 25,
-
                 speed: 350
-
             });
 
-
             bomber.dropped = true;
-
         }
 
-
-        if (
-            bomber.x -
-            cameraX >
-            W + 300
-        ) {
-
-            bombers.splice(
-                i,
-                1
-            );
-
+        if (bomber.x - cameraX > W + 300) {
+            bombers.splice(i, 1);
         }
-
     }
 }
 
@@ -771,66 +534,25 @@ function updateBombers(dt) {
 
 function updateMonsters(dt) {
 
-    for (
-        let i =
-        monsters.length - 1;
+    for (let i = monsters.length - 1; i >= 0; i--) {
 
-        i >= 0;
+        const monster = monsters[i];
 
-        i--
-    ) {
-
-        const monster =
-            monsters[i];
-
-
-        if (
-            monster.health <= 0
-        ) {
-
+        if (monster.health <= 0) {
             score += 200;
-
-            monsters.splice(
-                i,
-                1
-            );
-
+            monsters.splice(i, 1);
             continue;
-
         }
 
-
-        if (
-            monster.x <
-            player.x
-        ) {
-
-            monster.x +=
-                monster.speed *
-                dt;
-
+        if (monster.x < player.x) {
+            monster.x += monster.speed * dt;
         } else {
-
-            monster.x -=
-                monster.speed *
-                dt;
-
+            monster.x -= monster.speed * dt;
         }
 
-
-        if (
-            Math.abs(
-                monster.x -
-                player.x
-            ) < 70
-        ) {
-
-            player.health -=
-                15 *
-                dt;
-
+        if (Math.abs(monster.x - player.x) < 70) {
+            player.health -= 15 * dt;
         }
-
     }
 }
 
@@ -839,91 +561,39 @@ function updateMonsters(dt) {
    EXPLOSÃO
 ========================================= */
 
-function createExplosion(
-    x,
-    y,
-    radius
-) {
+function createExplosion(x, y, radius) {
 
     explosions.push({
-
         x: x,
-
         y: y,
-
         radius: radius,
-
         life: 0.35
-
     });
 
+    /* Destruir prédios */
+    for (const building of buildings) {
 
-    /*
-       Destruir prédios
-    */
-
-    for (
-        const building of buildings
-    ) {
-
-        if (
-            building.destroyed
-        )
+        if (building.destroyed)
             continue;
 
+        const center = building.x + building.width / 2;
 
-        const center =
-            building.x +
-            building.width / 2;
+        if (Math.abs(center - x) < radius + building.width / 2) {
 
+            building.health -= 90;
 
-        if (
-            Math.abs(
-                center - x
-            ) <
-            radius +
-            building.width / 2
-        ) {
-
-            building.health -=
-                90;
-
-
-            if (
-                building.health <= 0
-            ) {
-
-                destroyBuilding(
-                    building
-                );
-
+            if (building.health <= 0) {
+                destroyBuilding(building);
             }
-
         }
-
     }
 
+    /* Danificar monstros */
+    for (const monster of monsters) {
 
-    /*
-       Danificar monstros
-    */
-
-    for (
-        const monster of monsters
-    ) {
-
-        if (
-            Math.abs(
-                monster.x - x
-            ) <
-            radius
-        ) {
-
-            monster.health -=
-                120;
-
+        if (Math.abs(monster.x - x) < radius) {
+            monster.health -= 120;
         }
-
     }
 }
 
@@ -934,30 +604,13 @@ function createExplosion(
 
 function updateExplosions(dt) {
 
-    for (
-        let i =
-        explosions.length - 1;
+    for (let i = explosions.length - 1; i >= 0; i--) {
 
-        i >= 0;
+        explosions[i].life -= dt;
 
-        i--
-    ) {
-
-        explosions[i].life -=
-            dt;
-
-
-        if (
-            explosions[i].life <= 0
-        ) {
-
-            explosions.splice(
-                i,
-                1
-            );
-
+        if (explosions[i].life <= 0) {
+            explosions.splice(i, 1);
         }
-
     }
 }
 
@@ -966,34 +619,19 @@ function updateExplosions(dt) {
    DESTRUIR PRÉDIO
 ========================================= */
 
-function destroyBuilding(
-    building
-) {
+function destroyBuilding(building) {
 
-    if (
-        building.destroyed
-    )
+    if (building.destroyed)
         return;
 
-
-    building.destroyed =
-        true;
-
+    building.destroyed = true;
 
     score += 100;
 
-
     createExplosion(
-
-        building.x +
-        building.width / 2,
-
-        H -
-        GROUND_HEIGHT -
-        30,
-
+        building.x + building.width / 2,
+        H - GROUND_HEIGHT - 30,
         65
-
     );
 }
 
@@ -1021,7 +659,6 @@ function draw() {
     drawPlayer();
 
     drawExplosions();
-
 }
 
 
@@ -1031,36 +668,15 @@ function draw() {
 
 function drawSky() {
 
-    ctx.fillStyle =
-        "#78b8e5";
+    ctx.fillStyle = "#78b8e5";
 
+    ctx.fillRect(0, 0, W, H);
 
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
-
-
-    /*
-       Sol
-    */
-
-    ctx.fillStyle =
-        "#ffe49a";
-
+    /* Sol */
+    ctx.fillStyle = "#ffe49a";
 
     ctx.beginPath();
-
-    ctx.arc(
-        W - 100,
-        90,
-        45,
-        0,
-        Math.PI * 2
-    );
-
+    ctx.arc(W - 100, 90, 45, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -1071,54 +687,20 @@ function drawSky() {
 
 function drawMountains() {
 
-    ctx.fillStyle =
-        "#687783";
-
+    ctx.fillStyle = "#687783";
 
     ctx.beginPath();
+    ctx.moveTo(0, H - 220);
 
-    ctx.moveTo(
-        0,
-        H - 220
-    );
+    for (let x = 0; x <= W; x += 100) {
 
+        const y = H - 220 - Math.sin((x + cameraX * 0.15) * 0.008) * 55;
 
-    for (
-        let x = 0;
-        x <= W;
-        x += 100
-    ) {
-
-        const y =
-            H -
-            220 -
-            Math.sin(
-                (
-                    x +
-                    cameraX * 0.15
-                ) * 0.008
-            ) * 55;
-
-
-        ctx.lineTo(
-            x,
-            y
-        );
-
+        ctx.lineTo(x, y);
     }
 
-
-    ctx.lineTo(
-        W,
-        H
-    );
-
-
-    ctx.lineTo(
-        0,
-        H
-    );
-
+    ctx.lineTo(W, H);
+    ctx.lineTo(0, H);
 
     ctx.fill();
 }
@@ -1130,110 +712,44 @@ function drawMountains() {
 
 function drawCity() {
 
-    for (
-        const building of buildings
-    ) {
+    for (const building of buildings) {
 
-        const x =
-            building.x -
-            cameraX;
+        const x = building.x - cameraX;
 
-
-        if (
-            x + building.width < 0 ||
-            x > W
-        )
+        if (x + building.width < 0 || x > W)
             continue;
 
+        const bottom = H - GROUND_HEIGHT;
 
-        const bottom =
-            H -
-            GROUND_HEIGHT;
-
-
-        if (
-            building.destroyed
-        ) {
-
-            drawDestroyed(
-                building,
-                x,
-                bottom
-            );
-
+        if (building.destroyed) {
+            drawDestroyed(building, x, bottom);
             continue;
         }
 
+        const y = bottom - building.height;
 
-        const y =
-            bottom -
-            building.height;
-
-
-        /*
-           Prédio
-        */
-
-        ctx.fillStyle =
-            building.color;
-
+        /* Prédio */
+        ctx.fillStyle = building.color;
 
         ctx.fillRect(
-
             x,
             y,
-
             building.width,
             building.height
-
         );
 
+        /* Casa */
+        if (building.house) {
 
-        /*
-           Casa
-        */
-
-        if (
-            building.house
-        ) {
-
-            ctx.fillStyle =
-                "#8e4545";
-
+            ctx.fillStyle = "#8e4545";
 
             ctx.beginPath();
-
-            ctx.moveTo(
-                x,
-                y
-            );
-
-            ctx.lineTo(
-
-                x +
-                building.width / 2,
-
-                y - 28
-
-            );
-
-            ctx.lineTo(
-
-                x +
-                building.width,
-
-                y
-
-            );
-
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + building.width / 2, y - 28);
+            ctx.lineTo(x + building.width, y);
             ctx.fill();
 
-
-            drawHouseWindows(
-                x,
-                y,
-                building.width
-            );
+            drawHouseWindows(x, y, building.width);
 
         } else {
 
@@ -1243,52 +759,24 @@ function drawCity() {
                 building.width,
                 building.height
             );
-
         }
 
+        /* Vida do prédio */
+        if (building.health < 100) {
 
-        /*
-           Vida do prédio
-        */
+            ctx.fillStyle = "#202020";
 
-        if (
-            building.health <
-            100
-        ) {
+            ctx.fillRect(x, y - 7, building.width, 4);
 
-            ctx.fillStyle =
-                "#202020";
-
+            ctx.fillStyle = "#ef4848";
 
             ctx.fillRect(
                 x,
                 y - 7,
-                building.width,
+                building.width * (building.health / 100),
                 4
             );
-
-
-            ctx.fillStyle =
-                "#ef4848";
-
-
-            ctx.fillRect(
-
-                x,
-                y - 7,
-
-                building.width *
-                (
-                    building.health /
-                    100
-                ),
-
-                4
-
-            );
-
         }
-
     }
 }
 
@@ -1297,102 +785,36 @@ function drawCity() {
    JANELAS
 ========================================= */
 
-function drawWindows(
-    x,
-    y,
-    width,
-    height
-) {
+function drawWindows(x, y, width, height) {
 
-    const columns =
-        Math.max(
-            2,
-            Math.floor(
-                width / 27
-            )
-        );
+    const columns = Math.max(2, Math.floor(width / 27));
 
+    const rows = Math.max(2, Math.floor(height / 40));
 
-    const rows =
-        Math.max(
-            2,
-            Math.floor(
-                height / 40
-            )
-        );
+    ctx.fillStyle = "#e6ca6b";
 
+    for (let row = 0; row < rows; row++) {
 
-    ctx.fillStyle =
-        "#e6ca6b";
-
-
-    for (
-        let row = 0;
-        row < rows;
-        row++
-    ) {
-
-        for (
-            let col = 0;
-            col < columns;
-            col++
-        ) {
+        for (let col = 0; col < columns; col++) {
 
             ctx.fillRect(
-
-                x +
-                7 +
-                col * 27,
-
-                y +
-                12 +
-                row * 40,
-
+                x + 7 + col * 27,
+                y + 12 + row * 40,
                 10,
-
                 17
-
             );
-
         }
-
     }
 }
 
 
-function drawHouseWindows(
-    x,
-    y,
-    width
-) {
+function drawHouseWindows(x, y, width) {
 
-    ctx.fillStyle =
-        "#ffe07b";
+    ctx.fillStyle = "#ffe07b";
 
+    ctx.fillRect(x + 12, y + 25, 15, 15);
 
-    ctx.fillRect(
-
-        x + 12,
-        y + 25,
-
-        15,
-        15
-
-    );
-
-
-    ctx.fillRect(
-
-        x +
-        width -
-        27,
-
-        y + 25,
-
-        15,
-        15
-
-    );
+    ctx.fillRect(x + width - 27, y + 25, 15, 15);
 }
 
 
@@ -1400,32 +822,13 @@ function drawHouseWindows(
    PRÉDIO DESTRUÍDO
 ========================================= */
 
-function drawDestroyed(
-    building,
-    x,
-    bottom
-) {
+function drawDestroyed(building, x, bottom) {
 
-    const height =
-        building.height *
-        .25;
+    const height = building.height * 0.25;
 
+    ctx.fillStyle = "#34383b";
 
-    ctx.fillStyle =
-        "#34383b";
-
-
-    ctx.fillRect(
-
-        x,
-
-        bottom - height,
-
-        building.width,
-
-        height
-
-    );
+    ctx.fillRect(x, bottom - height, building.width, height);
 }
 
 
@@ -1435,78 +838,26 @@ function drawDestroyed(
 
 function drawGround() {
 
-    const ground =
-        H -
-        GROUND_HEIGHT;
+    const ground = H - GROUND_HEIGHT;
 
+    /* Gramado */
+    ctx.fillStyle = "#344d38";
 
-    /*
-       Gramado
-    */
+    ctx.fillRect(0, ground, W, GROUND_HEIGHT);
 
-    ctx.fillStyle =
-        "#344d38";
+    /* Estrada */
+    ctx.fillStyle = "#25282b";
 
+    ctx.fillRect(0, ground + 10, W, 55);
 
-    ctx.fillRect(
-        0,
-        ground,
-        W,
-        GROUND_HEIGHT
-    );
+    /* Faixas da estrada */
+    ctx.fillStyle = "#e1cf5b";
 
+    const offset = -cameraX % 90;
 
-    /*
-       Estrada
-    */
+    for (let x = offset; x < W; x += 90) {
 
-    ctx.fillStyle =
-        "#25282b";
-
-
-    ctx.fillRect(
-
-        0,
-
-        ground + 10,
-
-        W,
-
-        55
-
-    );
-
-
-    /*
-       Faixas da estrada
-    */
-
-    ctx.fillStyle =
-        "#e1cf5b";
-
-
-    const offset =
-        -cameraX % 90;
-
-
-    for (
-        let x = offset;
-        x < W;
-        x += 90
-    ) {
-
-        ctx.fillRect(
-
-            x,
-
-            ground + 35,
-
-            45,
-
-            5
-
-        );
-
+        ctx.fillRect(x, ground + 35, 45, 5);
     }
 }
 
@@ -1517,127 +868,44 @@ function drawGround() {
 
 function updatePlayerPosition() {
 
-    player.y =
-        H -
-        GROUND_HEIGHT -
-        player.height;
+    player.y = H - GROUND_HEIGHT - player.height;
 }
 
 
 function drawPlayer() {
 
-    const x =
-        player.x -
-        cameraX;
+    const x = player.x - cameraX;
 
+    const y = H - GROUND_HEIGHT - player.height;
 
-    const y =
-        H -
-        GROUND_HEIGHT -
-        player.height;
+    /* Pernas */
+    ctx.fillStyle = "#31522c";
 
+    ctx.fillRect(x + 13, y + 65, 14, 40);
 
-    /*
-       Pernas
-    */
+    ctx.fillRect(x + 38, y + 65, 14, 40);
 
-    ctx.fillStyle =
-        "#31522c";
+    /* Corpo */
+    ctx.fillStyle = "#64d84c";
 
+    ctx.fillRect(x + 8, y + 20, 50, 55);
 
-    ctx.fillRect(
-        x + 13,
-        y + 65,
-        14,
-        40
-    );
-
-
-    ctx.fillRect(
-        x + 38,
-        y + 65,
-        14,
-        40
-    );
-
-
-    /*
-       Corpo
-    */
-
-    ctx.fillStyle =
-        "#64d84c";
-
-
-    ctx.fillRect(
-        x + 8,
-        y + 20,
-        50,
-        55
-    );
-
-
-    /*
-       Cabeça
-    */
-
-    ctx.fillStyle =
-        "#8aff63";
-
+    /* Cabeça */
+    ctx.fillStyle = "#8aff63";
 
     ctx.beginPath();
-
-    ctx.arc(
-
-        x + 33,
-
-        y + 15,
-
-        28,
-
-        0,
-
-        Math.PI * 2
-
-    );
-
+    ctx.arc(x + 33, y + 15, 28, 0, Math.PI * 2);
     ctx.fill();
 
+    /* Olhos */
+    ctx.fillStyle = "#101010";
 
-    /*
-       Olhos
-    */
+    ctx.fillRect(x + 17, y + 8, 8, 8);
 
-    ctx.fillStyle =
-        "#101010";
+    ctx.fillRect(x + 42, y + 8, 8, 8);
 
-
-    ctx.fillRect(
-        x + 17,
-        y + 8,
-        8,
-        8
-    );
-
-
-    ctx.fillRect(
-        x + 42,
-        y + 8,
-        8,
-        8
-    );
-
-
-    /*
-       Boca
-    */
-
-    ctx.fillRect(
-        x + 19,
-        y + 28,
-        29,
-        6
-    );
+    /* Boca */
+    ctx.fillRect(x + 19, y + 28, 29, 6);
 }
 
 
@@ -1647,104 +915,36 @@ function drawPlayer() {
 
 function drawMonsters() {
 
-    for (
-        const monster of monsters
-    ) {
+    for (const monster of monsters) {
 
-        const x =
-            monster.x -
-            cameraX;
+        const x = monster.x - cameraX;
 
+        const y = H - GROUND_HEIGHT - monster.height;
 
-        const y =
-            H -
-            GROUND_HEIGHT -
-            monster.height;
+        ctx.fillStyle = "#a33dcc";
 
+        ctx.fillRect(x, y, monster.width, monster.height);
 
-        ctx.fillStyle =
-            "#a33dcc";
+        /* Olhos */
+        ctx.fillStyle = "#ff4646";
 
+        ctx.fillRect(x + 12, y + 15, 10, 10);
 
-        ctx.fillRect(
+        ctx.fillRect(x + monster.width - 22, y + 15, 10, 10);
 
-            x,
-            y,
+        /* Vida */
+        ctx.fillStyle = "#222";
 
-            monster.width,
-            monster.height
+        ctx.fillRect(x, y - 8, monster.width, 4);
 
-        );
-
-
-        /*
-           Olhos
-        */
-
-        ctx.fillStyle =
-            "#ff4646";
-
+        ctx.fillStyle = "#ff4141";
 
         ctx.fillRect(
-            x + 12,
-            y + 15,
-            10,
-            10
-        );
-
-
-        ctx.fillRect(
-
-            x +
-            monster.width -
-            22,
-
-            y + 15,
-
-            10,
-            10
-
-        );
-
-
-        /*
-           Vida
-        */
-
-        ctx.fillStyle =
-            "#222";
-
-
-        ctx.fillRect(
-
             x,
             y - 8,
-
-            monster.width,
+            monster.width * (monster.health / monster.maxHealth),
             4
-
         );
-
-
-        ctx.fillStyle =
-            "#ff4141";
-
-
-        ctx.fillRect(
-
-            x,
-            y - 8,
-
-            monster.width *
-            (
-                monster.health /
-                250
-            ),
-
-            4
-
-        );
-
     }
 }
 
@@ -1755,66 +955,26 @@ function drawMonsters() {
 
 function drawBombers() {
 
-    for (
-        const bomber of bombers
-    ) {
+    for (const bomber of bombers) {
 
-        const x =
-            bomber.x -
-            cameraX;
+        const x = bomber.x - cameraX;
 
+        const y = bomber.y;
 
-        const y =
-            bomber.y;
+        /* Corpo */
+        ctx.fillStyle = "#303942";
 
+        ctx.fillRect(x, y, 100, 18);
 
-        /*
-           Corpo
-        */
+        /* Asa */
+        ctx.fillStyle = "#4b5660";
 
-        ctx.fillStyle =
-            "#303942";
+        ctx.fillRect(x + 15, y - 12, 65, 40);
 
+        /* Cabine */
+        ctx.fillStyle = "#79c5dd";
 
-        ctx.fillRect(
-            x,
-            y,
-            100,
-            18
-        );
-
-
-        /*
-           Asa
-        */
-
-        ctx.fillStyle =
-            "#4b5660";
-
-
-        ctx.fillRect(
-            x + 15,
-            y - 12,
-            65,
-            40
-        );
-
-
-        /*
-           Cabine
-        */
-
-        ctx.fillStyle =
-            "#79c5dd";
-
-
-        ctx.fillRect(
-            x + 68,
-            y + 3,
-            20,
-            8
-        );
-
+        ctx.fillRect(x + 68, y + 3, 20, 8);
     }
 }
 
@@ -1825,55 +985,21 @@ function drawBombers() {
 
 function drawBombs() {
 
-    ctx.fillStyle =
-        "#171717";
+    ctx.fillStyle = "#171717";
 
+    for (const bomb of bombs) {
 
-    for (
-        const bomb of bombs
-    ) {
-
-        const x =
-            bomb.x -
-            cameraX;
-
+        const x = bomb.x - cameraX;
 
         ctx.beginPath();
-
-        ctx.arc(
-
-            x,
-            bomb.y,
-
-            7,
-
-            0,
-            Math.PI * 2
-
-        );
-
+        ctx.arc(x, bomb.y, 7, 0, Math.PI * 2);
         ctx.fill();
 
+        ctx.fillStyle = "#ff8a2c";
 
-        ctx.fillStyle =
-            "#ff8a2c";
+        ctx.fillRect(x - 2, bomb.y - 13, 4, 8);
 
-
-        ctx.fillRect(
-
-            x - 2,
-
-            bomb.y - 13,
-
-            4,
-
-            8
-
-        );
-
-
-        ctx.fillStyle =
-            "#171717";
+        ctx.fillStyle = "#171717";
     }
 }
 
@@ -1884,76 +1010,39 @@ function drawBombs() {
 
 function drawExplosions() {
 
-    for (
-        const explosion of explosions
-    ) {
+    for (const explosion of explosions) {
 
-        const progress =
-            explosion.life /
-            0.35;
+        const progress = explosion.life / 0.35;
 
+        const radius = explosion.radius * (1 - progress * 0.35);
 
-        const radius =
-            explosion.radius *
-            (
-                1 -
-                progress * .35
-            );
+        ctx.globalAlpha = progress;
 
-
-        ctx.globalAlpha =
-            progress;
-
-
-        ctx.fillStyle =
-            "#ffbd32";
-
+        ctx.fillStyle = "#ffbd32";
 
         ctx.beginPath();
-
         ctx.arc(
-
-            explosion.x -
-            cameraX,
-
+            explosion.x - cameraX,
             explosion.y,
-
             radius,
-
             0,
             Math.PI * 2
-
         );
-
         ctx.fill();
 
-
-        ctx.fillStyle =
-            "#f04a20";
-
+        ctx.fillStyle = "#f04a20";
 
         ctx.beginPath();
-
         ctx.arc(
-
-            explosion.x -
-            cameraX,
-
+            explosion.x - cameraX,
             explosion.y,
-
-            radius * .55,
-
+            radius * 0.55,
             0,
             Math.PI * 2
-
         );
-
         ctx.fill();
 
-
-        ctx.globalAlpha =
-            1;
-
+        ctx.globalAlpha = 1;
     }
 }
 
@@ -1964,49 +1053,19 @@ function drawExplosions() {
 
 function updateHUD() {
 
-    const alive =
-        buildings.reduce(
+    const alive = buildings.reduce(
+        (total, building) => total + (building.destroyed ? 0 : 1),
+        0
+    );
 
-            (total, building) =>
-                total +
-                (
-                    building.destroyed
-                        ? 0
-                        : 1
-                ),
+    document.getElementById("health").textContent =
+        Math.max(0, Math.floor(player.health));
 
-            0
+    document.getElementById("score").textContent = score;
 
-        );
+    document.getElementById("buildings").textContent = alive;
 
-
-    document.getElementById(
-        "health"
-    ).textContent =
-        Math.max(
-            0,
-            Math.floor(
-                player.health
-            )
-        );
-
-
-    document.getElementById(
-        "score"
-    ).textContent =
-        score;
-
-
-    document.getElementById(
-        "buildings"
-    ).textContent =
-        alive;
-
-
-    document.getElementById(
-        "bombers"
-    ).textContent =
-        bomberCount;
+    document.getElementById("bombers").textContent = bomberCount;
 }
 
 
@@ -2019,33 +1078,18 @@ function loop(time) {
     if (!running)
         return;
 
-
-    /*
-       Delta time.
-
-       Limita o valor para evitar
-       grandes saltos quando a aba
-       fica parada.
-    */
-
-    const dt =
-        Math.min(
-            (time - lastTime) / 1000,
-            0.033
-        );
-
+    const dt = Math.min(
+        (time - lastTime) / 1000,
+        0.033
+    );
 
     lastTime = time;
-
 
     update(dt);
 
     draw();
 
-
-    requestAnimationFrame(
-        loop
-    );
+    requestAnimationFrame(loop);
 }
 
 
@@ -2057,15 +1101,7 @@ function gameOver() {
 
     running = false;
 
+    document.getElementById("finalScore").textContent = score;
 
-    document.getElementById(
-        "finalScore"
-    ).textContent =
-        score;
-
-
-    document.getElementById(
-        "gameOver"
-    ).style.display =
-        "flex";
+    document.getElementById("gameOver").style.display = "flex";
 }
