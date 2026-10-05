@@ -37,7 +37,9 @@
 
                 <p><b>B</b> — Lançar bomba</p>
 
-                <p><b>R</b> — Chamar bombardeiro</p>
+                <p><b>R</b> — Chamar bombardeiro (Solta 3 bombas)</p>
+
+                <p><b>M</b> — Invocar Monstro Destruidor</p>
 
             </div>
 
@@ -70,13 +72,13 @@
         </div>
 
         <div class="hud-item">
-            🏢 <span>Prédios</span>
+            🏢 <span>Prédios Restantes</span>
             <strong id="buildings">0</strong>
         </div>
 
         <div class="hud-item">
             ✈️ <span>Bombardeiros</span>
-            <strong id="bombers">3</strong>
+            <strong id="bombers">10</strong>
         </div>
 
     </section>
@@ -87,21 +89,21 @@
     ========================== -->
 
     <div id="tip">
-        WASD / SETAS • ESPAÇO • B • R
+        WASD / SETAS • ESPAÇO • B • R (Avião) • M (Monstro)
     </div>
 
 
     <!-- =========================
-         GAME OVER
+         GAME OVER / VITÓRIA
     ========================== -->
 
     <section id="gameOver">
 
         <div class="gameover-box">
 
-            <h2>FIM DE JOGO</h2>
+            <h2 id="gameOverTitle">FIM DE JOGO</h2>
 
-            <p>
+            <p id="gameOverMessage">
                 Pontuação:
                 <strong id="finalScore">0</strong>
             </p>

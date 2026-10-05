@@ -37,7 +37,7 @@ let running = false;
 
 let score = 0;
 
-let bomberCount = 3;
+let bomberCount = 10;
 
 let cameraX = 0;
 
@@ -84,7 +84,9 @@ const player = {
 
     attackCooldown: 0,
 
-    bombCooldown: 0
+    bombCooldown: 0,
+
+    monsterCooldown: 0
 
 };
 
@@ -163,6 +165,10 @@ window.addEventListener(
             callBomber();
         }
 
+        if (event.code === "KeyM") {
+            spawnMonster();
+        }
+
     }
 );
 
@@ -195,7 +201,7 @@ function startGame() {
 
     createBuildings();
 
-    createMonsters();
+    monsters.length = 0;
 
     updateHUD();
 
@@ -271,47 +277,24 @@ function randomBuildingColor() {
 
 
 /* =========================================
-   MONSTROS
+   SPAWNAR MONSTRO ALIADO
 ========================================= */
 
-function createMonsters() {
+function spawnMonster() {
 
-    monsters.length = 0;
+    if (player.monsterCooldown > 0)
+        return;
 
-    monsters.push({
-        x: 850,
-        width: 70,
-        height: 75,
-        speed: 45,
-        health: 100,
-        maxHealth: 100
-    });
+    player.monsterCooldown = 1.5;
 
     monsters.push({
-        x: 1800,
-        width: 95,
-        height: 100,
-        speed: 35,
-        health: 150,
-        maxHealth: 150
-    });
-
-    monsters.push({
-        x: 3000,
-        width: 120,
-        height: 125,
-        speed: 25,
-        health: 250,
-        maxHealth: 250
-    });
-
-    monsters.push({
-        x: 4200,
-        width: 75,
-        height: 80,
-        speed: 55,
-        health: 100,
-        maxHealth: 100
+        x: player.x,
+        width: 90,
+        height: 95,
+        speed: 80,
+        health: 200,
+        maxHealth: 200,
+        attackDamage: 50
     });
 }
 
@@ -336,8 +319,24 @@ function update(dt) {
 
     updateHUD();
 
+    checkWinCondition();
+
     if (player.health <= 0) {
-        gameOver();
+        gameOver(false);
+    }
+}
+
+
+/* =========================================
+   VERIFICAR VITÓRIA
+========================================= */
+
+function checkWinCondition() {
+
+    const remainingBuildings = buildings.filter(b => !b.destroyed).length;
+
+    if (remainingBuildings === 0) {
+        gameOver(true);
     }
 }
 
@@ -371,6 +370,10 @@ function updatePlayer(dt) {
 
     if (player.bombCooldown > 0) {
         player.bombCooldown -= dt;
+    }
+
+    if (player.monsterCooldown > 0) {
+        player.monsterCooldown -= dt;
     }
 }
 
@@ -422,14 +425,6 @@ function attack() {
             }
         }
     }
-
-    /* Monstros */
-    for (const monster of monsters) {
-
-        if (Math.abs(monster.x - player.x) < 100) {
-            monster.health -= 40;
-        }
-    }
 }
 
 
@@ -467,7 +462,8 @@ function callBomber() {
         x: player.x - 900,
         y: 100,
         speed: 600,
-        dropped: false
+        dropsLeft: 3, // Solta 3 bombas durante o voo
+        nextDropX: player.x - 300
     });
 }
 
@@ -510,7 +506,7 @@ function updateBombers(dt) {
 
         bomber.x += bomber.speed * dt;
 
-        if (!bomber.dropped && bomber.x >= player.x) {
+        if (bomber.dropsLeft > 0 && bomber.x >= bomber.nextDropX) {
 
             bombs.push({
                 x: bomber.x,
@@ -518,7 +514,8 @@ function updateBombers(dt) {
                 speed: 350
             });
 
-            bomber.dropped = true;
+            bomber.dropsLeft--;
+            bomber.nextDropX += 300; // Define o ponto para soltar a próxima bomba
         }
 
         if (bomber.x - cameraX > W + 300) {
@@ -529,7 +526,7 @@ function updateBombers(dt) {
 
 
 /* =========================================
-   MONSTROS
+   MONSTROS (DESTRUINDO PRÉDIOS E CASAS)
 ========================================= */
 
 function updateMonsters(dt) {
@@ -538,20 +535,29 @@ function updateMonsters(dt) {
 
         const monster = monsters[i];
 
-        if (monster.health <= 0) {
-            score += 200;
+        monster.x += monster.speed * dt;
+
+        /* Ataca o prédio ou casa mais próximo no seu caminho */
+        for (const building of buildings) {
+
+            if (building.destroyed)
+                continue;
+
+            const buildingCenter = building.x + building.width / 2;
+
+            if (Math.abs(buildingCenter - monster.x) < (building.width / 2 + 20)) {
+
+                building.health -= monster.attackDamage * dt;
+
+                if (building.health <= 0) {
+                    destroyBuilding(building);
+                }
+            }
+        }
+
+        /* Se o monstro sair do mapa, é removido */
+        if (monster.x > WORLD_WIDTH + 200) {
             monsters.splice(i, 1);
-            continue;
-        }
-
-        if (monster.x < player.x) {
-            monster.x += monster.speed * dt;
-        } else {
-            monster.x -= monster.speed * dt;
-        }
-
-        if (Math.abs(monster.x - player.x) < 70) {
-            player.health -= 15 * dt;
         }
     }
 }
@@ -585,14 +591,6 @@ function createExplosion(x, y, radius) {
             if (building.health <= 0) {
                 destroyBuilding(building);
             }
-        }
-    }
-
-    /* Danificar monstros */
-    for (const monster of monsters) {
-
-        if (Math.abs(monster.x - x) < radius) {
-            monster.health -= 120;
         }
     }
 }
@@ -773,7 +771,7 @@ function drawCity() {
             ctx.fillRect(
                 x,
                 y - 7,
-                building.width * (building.health / 100),
+                Math.max(0, building.width * (building.health / 100)),
                 4
             );
         }
@@ -910,7 +908,7 @@ function drawPlayer() {
 
 
 /* =========================================
-   MONSTROS
+   MONSTROS ALIADOS
 ========================================= */
 
 function drawMonsters() {
@@ -931,20 +929,6 @@ function drawMonsters() {
         ctx.fillRect(x + 12, y + 15, 10, 10);
 
         ctx.fillRect(x + monster.width - 22, y + 15, 10, 10);
-
-        /* Vida */
-        ctx.fillStyle = "#222";
-
-        ctx.fillRect(x, y - 8, monster.width, 4);
-
-        ctx.fillStyle = "#ff4141";
-
-        ctx.fillRect(
-            x,
-            y - 8,
-            monster.width * (monster.health / monster.maxHealth),
-            4
-        );
     }
 }
 
@@ -1094,12 +1078,22 @@ function loop(time) {
 
 
 /* =========================================
-   GAME OVER
+   GAME OVER / TELA DE VITÓRIA
 ========================================= */
 
-function gameOver() {
+function gameOver(isWin = false) {
 
     running = false;
+
+    const titleElem = document.getElementById("gameOverTitle");
+
+    if (isWin) {
+        titleElem.textContent = "PARABÉNS!";
+        titleElem.style.color = "#4dff4d";
+    } else {
+        titleElem.textContent = "FIM DE JOGO";
+        titleElem.style.color = "#ff4b4b";
+    }
 
     document.getElementById("finalScore").textContent = score;
 
