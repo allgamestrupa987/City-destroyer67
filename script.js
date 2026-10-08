@@ -16,7 +16,7 @@ let H = 0;
 
 const WORLD_WIDTH = 4200;
 const GROUND_HEIGHT = 80;
-const BUILDING_COUNT = 42; // Ajustado para 42 prédios/casas
+const BUILDING_COUNT = 42;
 
 /* =========================================
    ESTADO
@@ -56,7 +56,7 @@ const player = {
     height: 105,
     speed: 350,
     health: 100,
-    facing: 1, // 1 para direita, -1 para esquerda
+    facing: 1,
     punching: false,
     punchTimer: 0,
     attackCooldown: 0,
@@ -290,7 +290,6 @@ function updatePlayer(dt) {
     if (player.rocketCooldown > 0) player.rocketCooldown -= dt;
     if (player.monsterCooldown > 0) player.monsterCooldown -= dt;
 
-    /* Animação do soco */
     if (player.punching) {
         player.punchTimer -= dt;
         if (player.punchTimer <= 0) {
@@ -317,7 +316,7 @@ function attack() {
 
     player.attackCooldown = 0.25;
     player.punching = true;
-    player.punchTimer = 0.18; // Duração da animação do soco
+    player.punchTimer = 0.18;
 
     const attackRange = 125;
 
@@ -545,7 +544,9 @@ function destroyBuilding(building) {
 
 function draw() {
     drawSky();
+    drawClouds();
     drawMountains();
+    drawTrees();
     drawCity();
     drawGround();
     drawBombers();
@@ -561,7 +562,7 @@ function draw() {
 ========================================= */
 
 function drawSky() {
-    ctx.fillStyle = "#78b8e5";
+    ctx.fillStyle = "#53a2de";
     ctx.fillRect(0, 0, W, H);
 
     ctx.fillStyle = "#ffe49a";
@@ -571,22 +572,121 @@ function drawSky() {
 }
 
 /* =========================================
-   MONTANHAS
+   NUVENS COM CÍRCULOS
+========================================= */
+
+function drawClouds() {
+    ctx.fillStyle = "#ffffff";
+
+    const cloudPositions = [
+        { x: 150, y: 70, size: 28 },
+        { x: 500, y: 110, size: 36 },
+        { x: 900, y: 60, size: 30 },
+        { x: 1350, y: 100, size: 40 },
+        { x: 1800, y: 75, size: 32 },
+        { x: 2300, y: 115, size: 38 },
+        { x: 2800, y: 65, size: 34 },
+        { x: 3300, y: 95, size: 42 },
+        { x: 3800, y: 80, size: 30 }
+    ];
+
+    for (const cloud of cloudPositions) {
+        const rx = cloud.x - cameraX * 0.2;
+        if (rx < -150 || rx > W + 150) continue;
+
+        ctx.beginPath();
+        ctx.arc(rx, cloud.y, cloud.size, 0, Math.PI * 2);
+        ctx.arc(rx + cloud.size * 0.7, cloud.y - cloud.size * 0.2, cloud.size * 0.8, 0, Math.PI * 2);
+        ctx.arc(rx + cloud.size * 1.4, cloud.y, cloud.size * 0.75, 0, Math.PI * 2);
+        ctx.arc(rx + cloud.size * 0.7, cloud.y + cloud.size * 0.3, cloud.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+/* =========================================
+   MONTANHAS (COM TOPO VERDE)
 ========================================= */
 
 function drawMountains() {
-    ctx.fillStyle = "#687783";
-    ctx.beginPath();
-    ctx.moveTo(0, H - 220);
+    const points = [];
 
-    for (let x = 0; x <= W; x += 100) {
-        const y = H - 220 - Math.sin((x + cameraX * 0.15) * 0.008) * 55;
-        ctx.lineTo(x, y);
+    // Calcular crista da montanha
+    for (let x = -100; x <= W + 100; x += 50) {
+        const worldX = x + cameraX * 0.15;
+        const y = H - 210 - Math.sin(worldX * 0.007) * 60 - Math.cos(worldX * 0.015) * 20;
+        points.push({ x: x, y: y });
     }
 
-    ctx.lineTo(W, H);
-    ctx.lineTo(0, H);
+    // Corpo da Montanha
+    ctx.fillStyle = "#526270";
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+    }
+
+    ctx.lineTo(W + 100, H);
+    ctx.lineTo(-100, H);
     ctx.fill();
+
+    // Topo Verde das Montanhas
+    ctx.fillStyle = "#3e8e41";
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+    }
+
+    for (let i = points.length - 1; i >= 0; i--) {
+        ctx.lineTo(points[i].x, points[i].y + 16);
+    }
+
+    ctx.fill();
+}
+
+/* =========================================
+   ÁRVORES ESTILIZADAS NAS MONTANHAS
+========================================= */
+
+function drawTrees() {
+    const treePositions = [
+        120, 280, 480, 680, 920, 1150, 1380, 1600, 1850, 2100, 2350, 2600, 2850, 3100, 3400, 3700, 4000
+    ];
+
+    for (const tx of treePositions) {
+        const screenX = tx - cameraX * 0.15;
+        if (screenX < -50 || screenX > W + 50) continue;
+
+        const worldX = tx;
+        const groundY = H - 210 - Math.sin(worldX * 0.007) * 60 - Math.cos(worldX * 0.015) * 20;
+
+        // Tronco quadrado principal
+        ctx.fillStyle = "#5c3d24";
+        ctx.fillRect(screenX - 4, groundY - 24, 8, 24);
+
+        // Galhos quadrados finos nas laterais
+        ctx.fillRect(screenX - 10, groundY - 18, 6, 3);
+        ctx.fillRect(screenX + 4, groundY - 14, 6, 3);
+
+        // Folhas em Esfera Verde Claro (Círculos) em volta dos galhos
+        ctx.fillStyle = "#7bd955";
+
+        // Esfera principal do topo
+        ctx.beginPath();
+        ctx.arc(screenX, groundY - 28, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Esferas laterais nos galhos
+        ctx.beginPath();
+        ctx.arc(screenX - 10, groundY - 18, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(screenX + 10, groundY - 14, 8, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 /* =========================================
@@ -750,21 +850,17 @@ function drawPlayer() {
     const punchExtension = player.punching ? 32 : 0;
 
     if (player.facing === 1) {
-        // Braço Traseiro (Esquerdo)
         ctx.fillRect(x - 2, y + 30, 12, 28);
 
-        // Braço Dianteiro (Direito com Animação de Soco)
         ctx.fillRect(x + 48, y + 30, 12 + punchExtension, 16);
         ctx.fillStyle = "#8aff63";
-        ctx.fillRect(x + 56 + punchExtension, y + 27, 12, 22); // Punho
+        ctx.fillRect(x + 56 + punchExtension, y + 27, 12, 22);
     } else {
-        // Braço Traseiro (Direito)
         ctx.fillRect(x + 56, y + 30, 12, 28);
 
-        // Braço Dianteiro (Esquerdo com Animação de Soco)
         ctx.fillRect(x + 8 - punchExtension, y + 30, 12 + punchExtension, 16);
         ctx.fillStyle = "#8aff63";
-        ctx.fillRect(x - 2 - punchExtension, y + 27, 12, 22); // Punho
+        ctx.fillRect(x - 2 - punchExtension, y + 27, 12, 22);
     }
 }
 
@@ -807,7 +903,7 @@ function drawBombers() {
 }
 
 /* =========================================
-   BOMBAS E FOGUETES (FOGUETE MAIS FINO E PONTA TRIANGULAR)
+   BOMBAS E FOGUETES
 ========================================= */
 
 function drawBombs() {
@@ -831,20 +927,17 @@ function drawRockets() {
         const x = rocket.x - cameraX;
         const y = rocket.y;
 
-        // Corpo fino do foguete (retângulo fino)
         ctx.fillStyle = "#d1d5db";
         ctx.fillRect(x - 2.5, y - 20, 5, 20);
 
-        // Ponta em triângulo maior que o corpo
         ctx.fillStyle = "#ef4444";
         ctx.beginPath();
         ctx.moveTo(x - 8, y);
         ctx.lineTo(x + 8, y);
-        ctx.lineTo(x, y + 14); // Apontado para baixo
+        ctx.lineTo(x, y + 14);
         ctx.closePath();
         ctx.fill();
 
-        // Fogo/Aleta no topo
         ctx.fillStyle = "#f97316";
         ctx.fillRect(x - 3, y - 26, 6, 6);
     }
