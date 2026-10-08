@@ -14,9 +14,9 @@ let H = 0;
    CONFIGURAÇÃO
 ========================================= */
 
-const WORLD_WIDTH = 5000;
+const WORLD_WIDTH = 4200;
 const GROUND_HEIGHT = 80;
-const BUILDING_COUNT = 60;
+const BUILDING_COUNT = 42; // Ajustado para 42 prédios/casas
 
 /* =========================================
    ESTADO
@@ -56,6 +56,9 @@ const player = {
     height: 105,
     speed: 350,
     health: 100,
+    facing: 1, // 1 para direita, -1 para esquerda
+    punching: false,
+    punchTimer: 0,
     attackCooldown: 0,
     bombCooldown: 0,
     rocketCooldown: 0,
@@ -125,7 +128,7 @@ window.addEventListener("keyup", event => {
 });
 
 /* =========================================
-   INICIAR
+   INICIAR JOGO
 ========================================= */
 
 function startGame() {
@@ -156,7 +159,7 @@ function startGame() {
 }
 
 /* =========================================
-   CRIAR CIDADE
+   CRIAR CIDADE (42 EDIFÍCIOS)
 ========================================= */
 
 function createBuildings() {
@@ -165,16 +168,14 @@ function createBuildings() {
     let x = 100;
 
     for (let i = 0; i < BUILDING_COUNT; i++) {
-        const house = Math.random() < 0.4; // 40% de chance de ser casa com telhado triangular
+        const house = Math.random() < 0.4;
 
         let width, height;
 
         if (house) {
-            // Casas triangulares bem menores
             width = 45 + Math.random() * 35;
             height = 45 + Math.random() * 35;
         } else {
-            // Prédios altos
             width = 65 + Math.random() * 65;
             height = 120 + Math.random() * 200;
         }
@@ -192,7 +193,7 @@ function createBuildings() {
             color: house ? "#c28d59" : randomBuildingColor()
         });
 
-        x += width + 20 + Math.random() * 30;
+        x += width + 22 + Math.random() * 30;
     }
 }
 
@@ -272,17 +273,30 @@ function checkWinCondition() {
 function updatePlayer(dt) {
     let direction = 0;
 
-    if (keys["KeyA"] || keys["ArrowLeft"]) direction -= 1;
-    if (keys["KeyD"] || keys["ArrowRight"]) direction += 1;
+    if (keys["KeyA"] || keys["ArrowLeft"]) {
+        direction -= 1;
+        player.facing = -1;
+    }
+    if (keys["KeyD"] || keys["ArrowRight"]) {
+        direction += 1;
+        player.facing = 1;
+    }
 
     player.x += direction * player.speed * dt;
-
     player.x = Math.max(20, Math.min(WORLD_WIDTH - 20, player.x));
 
     if (player.attackCooldown > 0) player.attackCooldown -= dt;
     if (player.bombCooldown > 0) player.bombCooldown -= dt;
     if (player.rocketCooldown > 0) player.rocketCooldown -= dt;
     if (player.monsterCooldown > 0) player.monsterCooldown -= dt;
+
+    /* Animação do soco */
+    if (player.punching) {
+        player.punchTimer -= dt;
+        if (player.punchTimer <= 0) {
+            player.punching = false;
+        }
+    }
 }
 
 /* =========================================
@@ -302,8 +316,10 @@ function attack() {
     if (player.attackCooldown > 0) return;
 
     player.attackCooldown = 0.25;
+    player.punching = true;
+    player.punchTimer = 0.18; // Duração da animação do soco
 
-    const attackRange = 120;
+    const attackRange = 125;
 
     for (const building of buildings) {
         if (building.destroyed) continue;
@@ -334,7 +350,7 @@ function fireRocket() {
         x: player.x,
         y: 0,
         targetY: H - GROUND_HEIGHT,
-        speed: 750
+        speed: 800
     });
 }
 
@@ -593,11 +609,9 @@ function drawCity() {
         const y = bottom - building.height;
 
         if (building.house) {
-            // DESENHAR CASA COM TELHADO TRIANGULAR
             ctx.fillStyle = building.color;
             ctx.fillRect(x, y, building.width, building.height);
 
-            // Telhado Triangular
             const roofHeight = building.width * 0.55;
             ctx.fillStyle = building.roofColor;
             ctx.beginPath();
@@ -607,7 +621,6 @@ function drawCity() {
             ctx.closePath();
             ctx.fill();
 
-            // Porta e Janela da Casa
             ctx.fillStyle = "#4a2c11";
             ctx.fillRect(x + building.width / 2 - 5, y + building.height - 18, 10, 18);
 
@@ -616,14 +629,12 @@ function drawCity() {
             ctx.fillRect(x + building.width - 16, y + 10, 10, 10);
 
         } else {
-            // DESENHAR PRÉDIO
             ctx.fillStyle = building.color;
             ctx.fillRect(x, y, building.width, building.height);
 
             drawWindows(x, y, building.width, building.height);
         }
 
-        // Barra de Vida
         if (building.health < building.maxHealth) {
             ctx.fillStyle = "#202020";
             ctx.fillRect(x, y - 10, building.width, 5);
@@ -640,7 +651,7 @@ function drawCity() {
 }
 
 /* =========================================
-   JANELAS DOS PRÉDIOS
+   JANELAS
 ========================================= */
 
 function drawWindows(x, y, width, height) {
@@ -662,7 +673,7 @@ function drawWindows(x, y, width, height) {
 }
 
 /* =========================================
-   ESTRUTURA DESTRUÍDA
+   PRÉDIO DESTRUÍDO
 ========================================= */
 
 function drawDestroyed(building, x, bottom) {
@@ -694,7 +705,7 @@ function drawGround() {
 }
 
 /* =========================================
-   JOGADOR
+   JOGADOR COM ANIMAÇÃO DE BRAÇOS
 ========================================= */
 
 function updatePlayerPosition() {
@@ -705,23 +716,56 @@ function drawPlayer() {
     const x = player.x - cameraX;
     const y = H - GROUND_HEIGHT - player.height;
 
+    /* Pernas */
     ctx.fillStyle = "#31522c";
     ctx.fillRect(x + 13, y + 65, 14, 40);
     ctx.fillRect(x + 38, y + 65, 14, 40);
 
+    /* Corpo */
     ctx.fillStyle = "#64d84c";
     ctx.fillRect(x + 8, y + 20, 50, 55);
 
+    /* Cabeça */
     ctx.fillStyle = "#8aff63";
     ctx.beginPath();
     ctx.arc(x + 33, y + 15, 28, 0, Math.PI * 2);
     ctx.fill();
 
+    /* Olhos */
     ctx.fillStyle = "#101010";
-    ctx.fillRect(x + 17, y + 8, 8, 8);
-    ctx.fillRect(x + 42, y + 8, 8, 8);
+    if (player.facing === 1) {
+        ctx.fillRect(x + 22, y + 8, 8, 8);
+        ctx.fillRect(x + 42, y + 8, 8, 8);
+    } else {
+        ctx.fillRect(x + 14, y + 8, 8, 8);
+        ctx.fillRect(x + 34, y + 8, 8, 8);
+    }
 
+    /* Boca */
     ctx.fillRect(x + 19, y + 28, 29, 6);
+
+    /* --- BRAÇOS E ANIMAÇÃO DE SOCO --- */
+    ctx.fillStyle = "#4ec437";
+
+    const punchExtension = player.punching ? 32 : 0;
+
+    if (player.facing === 1) {
+        // Braço Traseiro (Esquerdo)
+        ctx.fillRect(x - 2, y + 30, 12, 28);
+
+        // Braço Dianteiro (Direito com Animação de Soco)
+        ctx.fillRect(x + 48, y + 30, 12 + punchExtension, 16);
+        ctx.fillStyle = "#8aff63";
+        ctx.fillRect(x + 56 + punchExtension, y + 27, 12, 22); // Punho
+    } else {
+        // Braço Traseiro (Direito)
+        ctx.fillRect(x + 56, y + 30, 12, 28);
+
+        // Braço Dianteiro (Esquerdo com Animação de Soco)
+        ctx.fillRect(x + 8 - punchExtension, y + 30, 12 + punchExtension, 16);
+        ctx.fillStyle = "#8aff63";
+        ctx.fillRect(x - 2 - punchExtension, y + 27, 12, 22); // Punho
+    }
 }
 
 /* =========================================
@@ -763,7 +807,7 @@ function drawBombers() {
 }
 
 /* =========================================
-   BOMBAS E FOGUETES
+   BOMBAS E FOGUETES (FOGUETE MAIS FINO E PONTA TRIANGULAR)
 ========================================= */
 
 function drawBombs() {
@@ -785,14 +829,24 @@ function drawBombs() {
 function drawRockets() {
     for (const rocket of rockets) {
         const x = rocket.x - cameraX;
+        const y = rocket.y;
 
-        ctx.fillStyle = "#e03e3e";
-        ctx.fillRect(x - 4, rocket.y, 8, 22);
+        // Corpo fino do foguete (retângulo fino)
+        ctx.fillStyle = "#d1d5db";
+        ctx.fillRect(x - 2.5, y - 20, 5, 20);
 
-        ctx.fillStyle = "#ffcc00";
+        // Ponta em triângulo maior que o corpo
+        ctx.fillStyle = "#ef4444";
         ctx.beginPath();
-        ctx.arc(x, rocket.y, 5, 0, Math.PI * 2);
+        ctx.moveTo(x - 8, y);
+        ctx.lineTo(x + 8, y);
+        ctx.lineTo(x, y + 14); // Apontado para baixo
+        ctx.closePath();
         ctx.fill();
+
+        // Fogo/Aleta no topo
+        ctx.fillStyle = "#f97316";
+        ctx.fillRect(x - 3, y - 26, 6, 6);
     }
 }
 
