@@ -1,48 +1,33 @@
 "use strict";
 
-
 /* =========================================
    CANVAS
 ========================================= */
 
-const canvas =
-    document.getElementById("gameCanvas");
-
-const ctx =
-    canvas.getContext("2d", {
-        alpha: false
-    });
-
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d", { alpha: false });
 
 let W = 0;
 let H = 0;
-
 
 /* =========================================
    CONFIGURAÇÃO
 ========================================= */
 
 const WORLD_WIDTH = 5000;
-
 const GROUND_HEIGHT = 80;
-
-const BUILDING_COUNT = 70;
-
+const BUILDING_COUNT = 60;
 
 /* =========================================
    ESTADO
 ========================================= */
 
 let running = false;
-
 let score = 0;
-
 let bomberCount = 10;
-
+let rocketCount = 100;
 let cameraX = 0;
-
 let lastTime = 0;
-
 
 /* =========================================
    INPUT
@@ -50,55 +35,39 @@ let lastTime = 0;
 
 const keys = {};
 
-
 /* =========================================
    OBJETOS
 ========================================= */
 
 const buildings = [];
-
 const bombs = [];
-
+const rockets = [];
 const bombers = [];
-
 const monsters = [];
-
 const explosions = [];
-
 
 /* =========================================
    JOGADOR
 ========================================= */
 
 const player = {
-
     x: 250,
-
     width: 64,
-
     height: 105,
-
-    speed: 330,
-
+    speed: 350,
     health: 100,
-
     attackCooldown: 0,
-
     bombCooldown: 0,
-
+    rocketCooldown: 0,
     monsterCooldown: 0
-
 };
-
 
 /* =========================================
    RESIZE
 ========================================= */
 
 function resizeCanvas() {
-
     W = window.innerWidth;
-
     H = window.innerHeight;
 
     canvas.width = W;
@@ -107,161 +76,131 @@ function resizeCanvas() {
     updatePlayerPosition();
 }
 
-
-window.addEventListener(
-    "resize",
-    resizeCanvas
-);
-
-
+window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
-
 
 /* =========================================
    MENU
 ========================================= */
 
-document
-    .getElementById("startButton")
-    .addEventListener(
-        "click",
-        startGame
-    );
+document.getElementById("startButton").addEventListener("click", startGame);
 
-
-document
-    .getElementById("restartButton")
-    .addEventListener(
-        "click",
-        () => {
-            location.reload();
-        }
-    );
-
+document.getElementById("restartButton").addEventListener("click", () => {
+    location.reload();
+});
 
 /* =========================================
    TECLADO
 ========================================= */
 
-window.addEventListener(
-    "keydown",
-    event => {
+window.addEventListener("keydown", event => {
+    keys[event.code] = true;
 
-        keys[event.code] = true;
+    if (!running) return;
 
-        if (!running)
-            return;
-
-        if (event.code === "Space") {
-            event.preventDefault();
-            attack();
-        }
-
-        if (event.code === "KeyB") {
-            dropBomb();
-        }
-
-        if (event.code === "KeyR") {
-            callBomber();
-        }
-
-        if (event.code === "KeyM") {
-            spawnMonster();
-        }
-
+    if (event.code === "Space") {
+        event.preventDefault();
+        attack();
     }
-);
 
-
-window.addEventListener(
-    "keyup",
-    event => {
-        keys[event.code] = false;
+    if (event.code === "KeyF") {
+        fireRocket();
     }
-);
 
+    if (event.code === "KeyB") {
+        dropBomb();
+    }
+
+    if (event.code === "KeyR") {
+        callBomber();
+    }
+
+    if (event.code === "KeyM") {
+        spawnMonster();
+    }
+});
+
+window.addEventListener("keyup", event => {
+    keys[event.code] = false;
+});
 
 /* =========================================
    INICIAR
 ========================================= */
 
 function startGame() {
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("hud").style.display = "flex";
+    document.getElementById("tip").style.display = "block";
 
-    document
-        .getElementById("menu")
-        .style.display = "none";
-
-    document
-        .getElementById("hud")
-        .style.display = "flex";
-
-    document
-        .getElementById("tip")
-        .style.display = "block";
+    score = 0;
+    bomberCount = 10;
+    rocketCount = 100;
+    player.health = 100;
+    player.x = 250;
 
     createBuildings();
 
+    bombs.length = 0;
+    rockets.length = 0;
+    bombers.length = 0;
     monsters.length = 0;
+    explosions.length = 0;
 
     updateHUD();
 
     running = true;
-
     lastTime = performance.now();
 
     requestAnimationFrame(loop);
 }
-
 
 /* =========================================
    CRIAR CIDADE
 ========================================= */
 
 function createBuildings() {
-
     buildings.length = 0;
 
-    let x = 50;
+    let x = 100;
 
     for (let i = 0; i < BUILDING_COUNT; i++) {
+        const house = Math.random() < 0.4; // 40% de chance de ser casa com telhado triangular
 
-        const width = 55 + Math.random() * 70;
+        let width, height;
 
-        const height = 100 + Math.random() * 220;
-
-        const house = Math.random() < 0.25;
+        if (house) {
+            // Casas triangulares bem menores
+            width = 45 + Math.random() * 35;
+            height = 45 + Math.random() * 35;
+        } else {
+            // Prédios altos
+            width = 65 + Math.random() * 65;
+            height = 120 + Math.random() * 200;
+        }
 
         buildings.push({
-
+            id: i,
             x: x,
-
             width: width,
-
             height: height,
-
             health: 100,
-
             maxHealth: 100,
-
             destroyed: false,
-
             house: house,
-
-            color: house ? "#bd8050" : randomBuildingColor()
-
+            roofColor: "#a33222",
+            color: house ? "#c28d59" : randomBuildingColor()
         });
 
-        x += width + 18 + Math.random() * 35;
+        x += width + 20 + Math.random() * 30;
     }
 }
 
-
 /* =========================================
-   CORES
+   CORES DE PRÉDIOS
 ========================================= */
 
 function randomBuildingColor() {
-
     const colors = [
         "#4d5964",
         "#596570",
@@ -270,20 +209,15 @@ function randomBuildingColor() {
         "#707982"
     ];
 
-    return colors[
-        Math.floor(Math.random() * colors.length)
-    ];
+    return colors[Math.floor(Math.random() * colors.length)];
 }
-
 
 /* =========================================
    SPAWNAR MONSTRO ALIADO
 ========================================= */
 
 function spawnMonster() {
-
-    if (player.monsterCooldown > 0)
-        return;
+    if (player.monsterCooldown > 0) return;
 
     player.monsterCooldown = 1.5;
 
@@ -291,32 +225,25 @@ function spawnMonster() {
         x: player.x,
         width: 90,
         height: 95,
-        speed: 80,
+        speed: 90,
         health: 200,
         maxHealth: 200,
-        attackDamage: 50
+        attackDamage: 80
     });
 }
-
 
 /* =========================================
    ATUALIZAÇÃO
 ========================================= */
 
 function update(dt) {
-
     updatePlayer(dt);
-
     updateBombs(dt);
-
+    updateRockets(dt);
     updateBombers(dt);
-
     updateMonsters(dt);
-
     updateExplosions(dt);
-
     updateCamera();
-
     updateHUD();
 
     checkWinCondition();
@@ -326,13 +253,11 @@ function update(dt) {
     }
 }
 
-
 /* =========================================
    VERIFICAR VITÓRIA
 ========================================= */
 
 function checkWinCondition() {
-
     const remainingBuildings = buildings.filter(b => !b.destroyed).length;
 
     if (remainingBuildings === 0) {
@@ -340,85 +265,53 @@ function checkWinCondition() {
     }
 }
 
-
 /* =========================================
    JOGADOR
 ========================================= */
 
 function updatePlayer(dt) {
-
     let direction = 0;
 
-    if (keys["KeyA"] || keys["ArrowLeft"]) {
-        direction -= 1;
-    }
-
-    if (keys["KeyD"] || keys["ArrowRight"]) {
-        direction += 1;
-    }
+    if (keys["KeyA"] || keys["ArrowLeft"]) direction -= 1;
+    if (keys["KeyD"] || keys["ArrowRight"]) direction += 1;
 
     player.x += direction * player.speed * dt;
 
-    player.x = Math.max(
-        20,
-        Math.min(WORLD_WIDTH - 20, player.x)
-    );
+    player.x = Math.max(20, Math.min(WORLD_WIDTH - 20, player.x));
 
-    if (player.attackCooldown > 0) {
-        player.attackCooldown -= dt;
-    }
-
-    if (player.bombCooldown > 0) {
-        player.bombCooldown -= dt;
-    }
-
-    if (player.monsterCooldown > 0) {
-        player.monsterCooldown -= dt;
-    }
+    if (player.attackCooldown > 0) player.attackCooldown -= dt;
+    if (player.bombCooldown > 0) player.bombCooldown -= dt;
+    if (player.rocketCooldown > 0) player.rocketCooldown -= dt;
+    if (player.monsterCooldown > 0) player.monsterCooldown -= dt;
 }
-
 
 /* =========================================
    CÂMERA
 ========================================= */
 
 function updateCamera() {
-
     cameraX = player.x - W * 0.35;
-
-    cameraX = Math.max(
-        0,
-        Math.min(WORLD_WIDTH - W, cameraX)
-    );
+    cameraX = Math.max(0, Math.min(WORLD_WIDTH - W, cameraX));
 }
 
-
 /* =========================================
-   ATAQUE
+   ATAQUE DIRETO (SOCO)
 ========================================= */
 
 function attack() {
+    if (player.attackCooldown > 0) return;
 
-    if (player.attackCooldown > 0)
-        return;
+    player.attackCooldown = 0.25;
 
-    player.attackCooldown = 0.3;
+    const attackRange = 120;
 
-    const attackRange = 110;
-
-    /* Prédios */
     for (const building of buildings) {
+        if (building.destroyed) continue;
 
-        if (building.destroyed)
-            continue;
+        const buildingCenter = building.x + building.width / 2;
 
-        const distance = Math.abs(
-            (building.x + building.width / 2) - player.x
-        );
-
-        if (distance < attackRange) {
-
-            building.health -= 35;
+        if (Math.abs(buildingCenter - player.x) < (attackRange + building.width / 2)) {
+            building.health -= 45;
 
             if (building.health <= 0) {
                 destroyBuilding(building);
@@ -427,95 +320,111 @@ function attack() {
     }
 }
 
-
 /* =========================================
-   BOMBA
+   LANÇAR FOGUETE
 ========================================= */
 
-function dropBomb() {
+function fireRocket() {
+    if (rocketCount <= 0 || player.rocketCooldown > 0) return;
 
-    if (player.bombCooldown > 0)
-        return;
+    player.rocketCooldown = 0.2;
+    rocketCount--;
 
-    player.bombCooldown = 1;
-
-    bombs.push({
+    rockets.push({
         x: player.x,
-        y: 150,
-        speed: 400
+        y: 0,
+        targetY: H - GROUND_HEIGHT,
+        speed: 750
     });
 }
 
+/* =========================================
+   SOLTAR BOMBA
+========================================= */
+
+function dropBomb() {
+    if (player.bombCooldown > 0) return;
+
+    player.bombCooldown = 0.8;
+
+    bombs.push({
+        x: player.x,
+        y: 100,
+        speed: 450
+    });
+}
 
 /* =========================================
-   BOMBARDEIRO
+   CHAMAR BOMBARDEIRO
 ========================================= */
 
 function callBomber() {
-
-    if (bomberCount <= 0)
-        return;
+    if (bomberCount <= 0) return;
 
     bomberCount--;
 
     bombers.push({
         x: player.x - 900,
-        y: 100,
+        y: 80,
         speed: 600,
-        dropsLeft: 3, // Solta 3 bombas durante o voo
+        dropsLeft: 3,
         nextDropX: player.x - 300
     });
 }
 
+/* =========================================
+   ATUALIZAR FOGUETES
+========================================= */
+
+function updateRockets(dt) {
+    for (let i = rockets.length - 1; i >= 0; i--) {
+        const rocket = rockets[i];
+
+        rocket.y += rocket.speed * dt;
+
+        if (rocket.y >= rocket.targetY) {
+            createExplosion(rocket.x, rocket.targetY, 130);
+            rockets.splice(i, 1);
+        }
+    }
+}
 
 /* =========================================
    ATUALIZAR BOMBAS
 ========================================= */
 
 function updateBombs(dt) {
-
     for (let i = bombs.length - 1; i >= 0; i--) {
-
         const bomb = bombs[i];
 
         bomb.y += bomb.speed * dt;
 
         if (bomb.y >= H - GROUND_HEIGHT) {
-
-            createExplosion(
-                bomb.x,
-                H - GROUND_HEIGHT,
-                115
-            );
-
+            createExplosion(bomb.x, H - GROUND_HEIGHT, 115);
             bombs.splice(i, 1);
         }
     }
 }
 
-
 /* =========================================
-   AVIÕES
+   ATUALIZAR AVIÕES
 ========================================= */
 
 function updateBombers(dt) {
-
     for (let i = bombers.length - 1; i >= 0; i--) {
-
         const bomber = bombers[i];
 
         bomber.x += bomber.speed * dt;
 
         if (bomber.dropsLeft > 0 && bomber.x >= bomber.nextDropX) {
-
             bombs.push({
                 x: bomber.x,
                 y: bomber.y + 25,
-                speed: 350
+                speed: 400
             });
 
             bomber.dropsLeft--;
-            bomber.nextDropX += 300; // Define o ponto para soltar a próxima bomba
+            bomber.nextDropX += 300;
         }
 
         if (bomber.x - cameraX > W + 300) {
@@ -524,29 +433,22 @@ function updateBombers(dt) {
     }
 }
 
-
 /* =========================================
-   MONSTROS (DESTRUINDO PRÉDIOS E CASAS)
+   ATUALIZAR MONSTROS
 ========================================= */
 
 function updateMonsters(dt) {
-
     for (let i = monsters.length - 1; i >= 0; i--) {
-
         const monster = monsters[i];
 
         monster.x += monster.speed * dt;
 
-        /* Ataca o prédio ou casa mais próximo no seu caminho */
         for (const building of buildings) {
-
-            if (building.destroyed)
-                continue;
+            if (building.destroyed) continue;
 
             const buildingCenter = building.x + building.width / 2;
 
-            if (Math.abs(buildingCenter - monster.x) < (building.width / 2 + 20)) {
-
+            if (Math.abs(buildingCenter - monster.x) < (building.width / 2 + 30)) {
                 building.health -= monster.attackDamage * dt;
 
                 if (building.health <= 0) {
@@ -555,20 +457,17 @@ function updateMonsters(dt) {
             }
         }
 
-        /* Se o monstro sair do mapa, é removido */
         if (monster.x > WORLD_WIDTH + 200) {
             monsters.splice(i, 1);
         }
     }
 }
 
-
 /* =========================================
    EXPLOSÃO
 ========================================= */
 
 function createExplosion(x, y, radius) {
-
     explosions.push({
         x: x,
         y: y,
@@ -576,17 +475,13 @@ function createExplosion(x, y, radius) {
         life: 0.35
     });
 
-    /* Destruir prédios */
     for (const building of buildings) {
-
-        if (building.destroyed)
-            continue;
+        if (building.destroyed) continue;
 
         const center = building.x + building.width / 2;
 
         if (Math.abs(center - x) < radius + building.width / 2) {
-
-            building.health -= 90;
+            building.health -= 100;
 
             if (building.health <= 0) {
                 destroyBuilding(building);
@@ -595,15 +490,12 @@ function createExplosion(x, y, radius) {
     }
 }
 
-
 /* =========================================
    ATUALIZAR EXPLOSÕES
 ========================================= */
 
 function updateExplosions(dt) {
-
     for (let i = explosions.length - 1; i >= 0; i--) {
-
         explosions[i].life -= dt;
 
         if (explosions[i].life <= 0) {
@@ -612,112 +504,86 @@ function updateExplosions(dt) {
     }
 }
 
-
 /* =========================================
-   DESTRUIR PRÉDIO
+   DESTRUIR PRÉDIO / CASA
 ========================================= */
 
 function destroyBuilding(building) {
-
-    if (building.destroyed)
-        return;
+    if (building.destroyed) return;
 
     building.destroyed = true;
+    building.health = 0;
 
-    score += 100;
+    score += building.house ? 80 : 150;
 
     createExplosion(
         building.x + building.width / 2,
-        H - GROUND_HEIGHT - 30,
-        65
+        H - GROUND_HEIGHT - 20,
+        50
     );
 }
-
 
 /* =========================================
    DESENHO
 ========================================= */
 
 function draw() {
-
     drawSky();
-
     drawMountains();
-
     drawCity();
-
     drawGround();
-
     drawBombers();
-
     drawBombs();
-
+    drawRockets();
     drawMonsters();
-
     drawPlayer();
-
     drawExplosions();
 }
-
 
 /* =========================================
    CÉU
 ========================================= */
 
 function drawSky() {
-
     ctx.fillStyle = "#78b8e5";
-
     ctx.fillRect(0, 0, W, H);
 
-    /* Sol */
     ctx.fillStyle = "#ffe49a";
-
     ctx.beginPath();
     ctx.arc(W - 100, 90, 45, 0, Math.PI * 2);
     ctx.fill();
 }
-
 
 /* =========================================
    MONTANHAS
 ========================================= */
 
 function drawMountains() {
-
     ctx.fillStyle = "#687783";
-
     ctx.beginPath();
     ctx.moveTo(0, H - 220);
 
     for (let x = 0; x <= W; x += 100) {
-
         const y = H - 220 - Math.sin((x + cameraX * 0.15) * 0.008) * 55;
-
         ctx.lineTo(x, y);
     }
 
     ctx.lineTo(W, H);
     ctx.lineTo(0, H);
-
     ctx.fill();
 }
 
-
 /* =========================================
-   CIDADE
+   CIDADE E CASAS
 ========================================= */
 
 function drawCity() {
+    const bottom = H - GROUND_HEIGHT;
 
     for (const building of buildings) {
-
         const x = building.x - cameraX;
 
-        if (x + building.width < 0 || x > W)
-            continue;
-
-        const bottom = H - GROUND_HEIGHT;
+        if (x + building.width < -50 || x > W + 50) continue;
 
         if (building.destroyed) {
             drawDestroyed(building, x, bottom);
@@ -726,253 +592,184 @@ function drawCity() {
 
         const y = bottom - building.height;
 
-        /* Prédio */
-        ctx.fillStyle = building.color;
-
-        ctx.fillRect(
-            x,
-            y,
-            building.width,
-            building.height
-        );
-
-        /* Casa */
         if (building.house) {
+            // DESENHAR CASA COM TELHADO TRIANGULAR
+            ctx.fillStyle = building.color;
+            ctx.fillRect(x, y, building.width, building.height);
 
-            ctx.fillStyle = "#8e4545";
-
+            // Telhado Triangular
+            const roofHeight = building.width * 0.55;
+            ctx.fillStyle = building.roofColor;
             ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + building.width / 2, y - 28);
-            ctx.lineTo(x + building.width, y);
+            ctx.moveTo(x - 5, y);
+            ctx.lineTo(x + building.width / 2, y - roofHeight);
+            ctx.lineTo(x + building.width + 5, y);
+            ctx.closePath();
             ctx.fill();
 
-            drawHouseWindows(x, y, building.width);
+            // Porta e Janela da Casa
+            ctx.fillStyle = "#4a2c11";
+            ctx.fillRect(x + building.width / 2 - 5, y + building.height - 18, 10, 18);
+
+            ctx.fillStyle = "#ffe07b";
+            ctx.fillRect(x + 6, y + 10, 10, 10);
+            ctx.fillRect(x + building.width - 16, y + 10, 10, 10);
 
         } else {
+            // DESENHAR PRÉDIO
+            ctx.fillStyle = building.color;
+            ctx.fillRect(x, y, building.width, building.height);
 
-            drawWindows(
-                x,
-                y,
-                building.width,
-                building.height
-            );
+            drawWindows(x, y, building.width, building.height);
         }
 
-        /* Vida do prédio */
-        if (building.health < 100) {
-
+        // Barra de Vida
+        if (building.health < building.maxHealth) {
             ctx.fillStyle = "#202020";
-
-            ctx.fillRect(x, y - 7, building.width, 4);
+            ctx.fillRect(x, y - 10, building.width, 5);
 
             ctx.fillStyle = "#ef4848";
-
             ctx.fillRect(
                 x,
-                y - 7,
-                Math.max(0, building.width * (building.health / 100)),
-                4
+                y - 10,
+                Math.max(0, building.width * (building.health / building.maxHealth)),
+                5
             );
         }
     }
 }
 
-
 /* =========================================
-   JANELAS
+   JANELAS DOS PRÉDIOS
 ========================================= */
 
 function drawWindows(x, y, width, height) {
-
-    const columns = Math.max(2, Math.floor(width / 27));
-
-    const rows = Math.max(2, Math.floor(height / 40));
+    const columns = Math.max(2, Math.floor(width / 24));
+    const rows = Math.max(2, Math.floor(height / 35));
 
     ctx.fillStyle = "#e6ca6b";
 
     for (let row = 0; row < rows; row++) {
-
         for (let col = 0; col < columns; col++) {
-
             ctx.fillRect(
-                x + 7 + col * 27,
-                y + 12 + row * 40,
-                10,
-                17
+                x + 6 + col * 22,
+                y + 10 + row * 32,
+                9,
+                15
             );
         }
     }
 }
 
-
-function drawHouseWindows(x, y, width) {
-
-    ctx.fillStyle = "#ffe07b";
-
-    ctx.fillRect(x + 12, y + 25, 15, 15);
-
-    ctx.fillRect(x + width - 27, y + 25, 15, 15);
-}
-
-
 /* =========================================
-   PRÉDIO DESTRUÍDO
+   ESTRUTURA DESTRUÍDA
 ========================================= */
 
 function drawDestroyed(building, x, bottom) {
-
-    const height = building.height * 0.25;
+    const height = Math.max(10, building.height * 0.2);
 
     ctx.fillStyle = "#34383b";
-
     ctx.fillRect(x, bottom - height, building.width, height);
 }
-
 
 /* =========================================
    CHÃO
 ========================================= */
 
 function drawGround() {
-
     const ground = H - GROUND_HEIGHT;
 
-    /* Gramado */
     ctx.fillStyle = "#344d38";
-
     ctx.fillRect(0, ground, W, GROUND_HEIGHT);
 
-    /* Estrada */
     ctx.fillStyle = "#25282b";
-
     ctx.fillRect(0, ground + 10, W, 55);
 
-    /* Faixas da estrada */
     ctx.fillStyle = "#e1cf5b";
-
     const offset = -cameraX % 90;
 
     for (let x = offset; x < W; x += 90) {
-
         ctx.fillRect(x, ground + 35, 45, 5);
     }
 }
-
 
 /* =========================================
    JOGADOR
 ========================================= */
 
 function updatePlayerPosition() {
-
     player.y = H - GROUND_HEIGHT - player.height;
 }
 
-
 function drawPlayer() {
-
     const x = player.x - cameraX;
-
     const y = H - GROUND_HEIGHT - player.height;
 
-    /* Pernas */
     ctx.fillStyle = "#31522c";
-
     ctx.fillRect(x + 13, y + 65, 14, 40);
-
     ctx.fillRect(x + 38, y + 65, 14, 40);
 
-    /* Corpo */
     ctx.fillStyle = "#64d84c";
-
     ctx.fillRect(x + 8, y + 20, 50, 55);
 
-    /* Cabeça */
     ctx.fillStyle = "#8aff63";
-
     ctx.beginPath();
     ctx.arc(x + 33, y + 15, 28, 0, Math.PI * 2);
     ctx.fill();
 
-    /* Olhos */
     ctx.fillStyle = "#101010";
-
     ctx.fillRect(x + 17, y + 8, 8, 8);
-
     ctx.fillRect(x + 42, y + 8, 8, 8);
 
-    /* Boca */
     ctx.fillRect(x + 19, y + 28, 29, 6);
 }
-
 
 /* =========================================
    MONSTROS ALIADOS
 ========================================= */
 
 function drawMonsters() {
-
     for (const monster of monsters) {
-
         const x = monster.x - cameraX;
-
         const y = H - GROUND_HEIGHT - monster.height;
 
         ctx.fillStyle = "#a33dcc";
-
         ctx.fillRect(x, y, monster.width, monster.height);
 
-        /* Olhos */
         ctx.fillStyle = "#ff4646";
-
         ctx.fillRect(x + 12, y + 15, 10, 10);
-
         ctx.fillRect(x + monster.width - 22, y + 15, 10, 10);
     }
 }
-
 
 /* =========================================
    AVIÕES
 ========================================= */
 
 function drawBombers() {
-
     for (const bomber of bombers) {
-
         const x = bomber.x - cameraX;
-
         const y = bomber.y;
 
-        /* Corpo */
         ctx.fillStyle = "#303942";
-
         ctx.fillRect(x, y, 100, 18);
 
-        /* Asa */
         ctx.fillStyle = "#4b5660";
-
         ctx.fillRect(x + 15, y - 12, 65, 40);
 
-        /* Cabine */
         ctx.fillStyle = "#79c5dd";
-
         ctx.fillRect(x + 68, y + 3, 20, 8);
     }
 }
 
-
 /* =========================================
-   BOMBAS
+   BOMBAS E FOGUETES
 ========================================= */
 
 function drawBombs() {
-
     ctx.fillStyle = "#171717";
 
     for (const bomb of bombs) {
-
         const x = bomb.x - cameraX;
 
         ctx.beginPath();
@@ -980,30 +777,37 @@ function drawBombs() {
         ctx.fill();
 
         ctx.fillStyle = "#ff8a2c";
-
         ctx.fillRect(x - 2, bomb.y - 13, 4, 8);
-
         ctx.fillStyle = "#171717";
     }
 }
 
+function drawRockets() {
+    for (const rocket of rockets) {
+        const x = rocket.x - cameraX;
+
+        ctx.fillStyle = "#e03e3e";
+        ctx.fillRect(x - 4, rocket.y, 8, 22);
+
+        ctx.fillStyle = "#ffcc00";
+        ctx.beginPath();
+        ctx.arc(x, rocket.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
 
 /* =========================================
    EXPLOSÕES
 ========================================= */
 
 function drawExplosions() {
-
     for (const explosion of explosions) {
-
         const progress = explosion.life / 0.35;
-
         const radius = explosion.radius * (1 - progress * 0.35);
 
         ctx.globalAlpha = progress;
 
         ctx.fillStyle = "#ffbd32";
-
         ctx.beginPath();
         ctx.arc(
             explosion.x - cameraX,
@@ -1015,7 +819,6 @@ function drawExplosions() {
         ctx.fill();
 
         ctx.fillStyle = "#f04a20";
-
         ctx.beginPath();
         ctx.arc(
             explosion.x - cameraX,
@@ -1030,72 +833,55 @@ function drawExplosions() {
     }
 }
 
-
 /* =========================================
    HUD
 ========================================= */
 
 function updateHUD() {
+    const alive = buildings.filter(b => !b.destroyed).length;
 
-    const alive = buildings.reduce(
-        (total, building) => total + (building.destroyed ? 0 : 1),
-        0
-    );
-
-    document.getElementById("health").textContent =
-        Math.max(0, Math.floor(player.health));
-
+    document.getElementById("health").textContent = Math.max(0, Math.floor(player.health));
     document.getElementById("score").textContent = score;
-
     document.getElementById("buildings").textContent = alive;
-
+    document.getElementById("rockets").textContent = rocketCount;
     document.getElementById("bombers").textContent = bomberCount;
 }
-
 
 /* =========================================
    LOOP
 ========================================= */
 
 function loop(time) {
+    if (!running) return;
 
-    if (!running)
-        return;
-
-    const dt = Math.min(
-        (time - lastTime) / 1000,
-        0.033
-    );
-
+    const dt = Math.min((time - lastTime) / 1000, 0.033);
     lastTime = time;
 
     update(dt);
-
     draw();
 
     requestAnimationFrame(loop);
 }
-
 
 /* =========================================
    GAME OVER / TELA DE VITÓRIA
 ========================================= */
 
 function gameOver(isWin = false) {
-
     running = false;
 
     const titleElem = document.getElementById("gameOverTitle");
+    const msgElem = document.getElementById("gameOverMessage");
 
     if (isWin) {
         titleElem.textContent = "PARABÉNS!";
         titleElem.style.color = "#4dff4d";
+        msgElem.innerHTML = `Você destruiu toda a cidade!<br>Pontuação Final: <strong id="finalScore">${score}</strong>`;
     } else {
         titleElem.textContent = "FIM DE JOGO";
         titleElem.style.color = "#ff4b4b";
+        msgElem.innerHTML = `Pontuação Final: <strong id="finalScore">${score}</strong>`;
     }
-
-    document.getElementById("finalScore").textContent = score;
 
     document.getElementById("gameOver").style.display = "flex";
 }

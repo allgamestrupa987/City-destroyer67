@@ -33,9 +33,11 @@
 
                 <p><b>A / D</b> ou <b>← / →</b> — Mover</p>
 
-                <p><b>ESPAÇO</b> — Ataque</p>
+                <p><b>ESPAÇO</b> — Ataque Soco</p>
 
-                <p><b>B</b> — Lançar bomba</p>
+                <p><b>F</b> — Lançar Foguete (Até 100)</p>
+
+                <p><b>B</b> — Soltar Bomba</p>
 
                 <p><b>R</b> — Chamar bombardeiro (Solta 3 bombas)</p>
 
@@ -72,8 +74,13 @@
         </div>
 
         <div class="hud-item">
-            🏢 <span>Prédios Restantes</span>
+            🏢 <span>Restantes</span>
             <strong id="buildings">0</strong>
+        </div>
+
+        <div class="hud-item">
+            🚀 <span>Foguetes</span>
+            <strong id="rockets">100</strong>
         </div>
 
         <div class="hud-item">
@@ -89,7 +96,7 @@
     ========================== -->
 
     <div id="tip">
-        WASD / SETAS • ESPAÇO • B • R (Avião) • M (Monstro)
+        WASD / SETAS • ESPAÇO (Soco) • F (Foguete) • B (Bomba) • R (Avião) • M (Monstro)
     </div>
 
 
@@ -104,7 +111,7 @@
             <h2 id="gameOverTitle">FIM DE JOGO</h2>
 
             <p id="gameOverMessage">
-                Pontuação:
+                Pontuação Final:
                 <strong id="finalScore">0</strong>
             </p>
 
